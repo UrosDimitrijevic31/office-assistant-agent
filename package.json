@@ -1,37 +1,37 @@
 {
-  "name": "office-assistant-agent",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "dev": "tsx watch --tsconfig tsconfig.json src/app.ts",
-    "build": "tsc",
-    "start": "node -r tsconfig-paths/register dist/app.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "@anthropic-ai/sdk": "0.88.0",
-    "dotenv": "^17.4.2",
-    "fastify": "5.8.4",
-    "zod": "^4.3.6"
-  },
-  "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@trivago/prettier-plugin-sort-imports": "^6.0.2",
-    "@types/node": "25.6.0",
-    "eslint": "^10.2.0",
-    "eslint-config-prettier": "^10.1.8",
-    "prettier": "^3.8.2",
-    "tsconfig-paths": "^4.2.0",
-    "tsx": "4.21.0",
-    "typescript": "6.0.2",
-    "typescript-eslint": "^8.58.2"
-  }
+    "name": "office-assistant-agent",
+    "version": "1.0.0",
+    "main": "index.js",
+    "scripts": {
+        "dev": "tsx watch --tsconfig tsconfig.json src/app.ts",
+        "build": "tsc",
+        "start": "node -r tsconfig-paths/register dist/app.js",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "format": "prettier --write .",
+        "format:check": "prettier --check ."
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "dependencies": {
+        "@anthropic-ai/sdk": "0.88.0",
+        "dotenv": "^17.4.2",
+        "fastify": "5.8.4",
+        "zod": "^4.3.6"
+    },
+    "devDependencies": {
+        "@eslint/js": "^10.0.1",
+        "@trivago/prettier-plugin-sort-imports": "^6.0.2",
+        "@types/node": "25.6.0",
+        "eslint": "^10.2.0",
+        "eslint-config-prettier": "^10.1.8",
+        "prettier": "^3.8.2",
+        "tsconfig-paths": "^4.2.0",
+        "tsx": "4.21.0",
+        "typescript": "6.0.2",
+        "typescript-eslint": "^8.58.2"
+    }
 }

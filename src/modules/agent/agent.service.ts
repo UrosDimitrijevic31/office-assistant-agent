@@ -1,8 +1,20 @@
 import { randomUUID } from 'node:crypto';
 
+import Anthropic from '@anthropic-ai/sdk';
+
 import { createApproval } from '../approvals/approval.store';
+import { getCurrentDatetimeTool } from '../tools/datetime.tool';
+import { callClaude } from './claude.service';
 
 export type AgentIntent = 'schedule_meeting' | 'send_email' | 'create_ticket' | 'unknown';
+
+type ApprovalIntent = 'schedule_meeting' | 'send_email' | 'create_ticket';
+
+const APPROVAL_INTENTS: ApprovalIntent[] = ['schedule_meeting', 'send_email', 'create_ticket'];
+
+function isApprovalIntent(value: string): value is ApprovalIntent {
+    return APPROVAL_INTENTS.includes(value as ApprovalIntent);
+}
 
 export type AgentResponse = {
     status: 'success' | 'needs_approval' | 'error';
@@ -12,81 +24,100 @@ export type AgentResponse = {
 };
 
 export async function processAgentMessage(message: string): Promise<AgentResponse> {
-    const text = message.toLowerCase();
+    try {
+        const messages: Anthropic.MessageParam[] = [{ role: 'user', content: message }];
 
-    if (text.includes('meeting') || text.includes('schedule')) {
-        const approval = createApproval({
-            id: randomUUID(),
-            type: 'schedule_meeting',
-            status: 'pending',
-            payload: {
-                title: 'Office meeting',
-                participants: ['ana@company.com'],
-                start: '2026-04-15T15:00:00+02:00',
-                end: '2026-04-15T15:30:00+02:00',
-            },
-        });
+        let { response } = await callClaude(messages);
+
+        while (response.stop_reason === 'tool_use') {
+            const toolBlock = response.content.find(
+                (block): block is Anthropic.ToolUseBlock => block.type === 'tool_use',
+            );
+
+            if (!toolBlock) {
+                return { status: 'error', intent: 'unknown', message: 'Tool block missing.' };
+            }
+
+            // Action tools — stop loop and wait for user approval
+            if (isApprovalIntent(toolBlock.name)) {
+                const intent = toolBlock.name;
+                const payload = toolBlock.input as Record<string, unknown>;
+
+                const approval = createApproval({
+                    id: randomUUID(),
+                    type: intent,
+                    status: 'pending',
+                    payload,
+                });
+
+                return {
+                    status: 'needs_approval',
+                    intent,
+                    message: `${formatIntentLabel(intent)} prepared and waiting for approval.`,
+                    data: {
+                        approvalId: approval.id,
+                        preview: approval.payload,
+                    },
+                };
+            }
+
+            // Transparent tools — execute immediately and continue loop
+            let toolResult: unknown;
+
+            if (toolBlock.name === 'get_current_datetime') {
+                toolResult = getCurrentDatetimeTool();
+            } else {
+                toolResult = { error: `Unknown tool: ${toolBlock.name}` };
+            }
+
+            // Append assistant response and tool result, then call Claude again
+            messages.push({ role: 'assistant', content: response.content });
+            messages.push({
+                role: 'user',
+                content: [
+                    {
+                        type: 'tool_result',
+                        tool_use_id: toolBlock.id,
+                        content: JSON.stringify(toolResult),
+                    },
+                ],
+            });
+
+            ({ response } = await callClaude(messages));
+        }
+
+        // Claude responded with plain text — no tool needed
+        const textBlock = response.content.find(
+            (block): block is Anthropic.TextBlock => block.type === 'text',
+        );
+        const replyText = textBlock
+            ? textBlock.text.replace(/\n+/g, ' ').trim()
+            : 'No response from assistant.';
 
         return {
-            status: 'needs_approval',
-            intent: 'schedule_meeting',
-            message: 'Meeting prepared and waiting for approval.',
+            status: 'success',
+            intent: 'unknown',
+            message: replyText,
+        };
+    } catch (error) {
+        return {
+            status: 'error',
+            intent: 'unknown',
+            message: 'Failed to process the request.',
             data: {
-                approvalId: approval.id,
-                preview: approval.payload,
+                error: error instanceof Error ? error.message : 'Unknown error',
             },
         };
     }
+}
 
-    if (text.includes('email') || text.includes('mail') || text.includes('send')) {
-        const approval = createApproval({
-            id: randomUUID(),
-            type: 'send_email',
-            status: 'pending',
-            payload: {
-                to: ['ana@company.com'],
-                subject: 'Office update',
-                body: 'Hello, this is a prepared office update email.',
-            },
-        });
-
-        return {
-            status: 'needs_approval',
-            intent: 'send_email',
-            message: 'Email prepared and waiting for approval.',
-            data: {
-                approvalId: approval.id,
-                preview: approval.payload,
-            },
-        };
+function formatIntentLabel(intent: ApprovalIntent): string {
+    switch (intent) {
+        case 'schedule_meeting':
+            return 'Meeting';
+        case 'send_email':
+            return 'Email';
+        case 'create_ticket':
+            return 'Ticket';
     }
-
-    if (text.includes('ticket') || text.includes('issue') || text.includes('bug')) {
-        const approval = createApproval({
-            id: randomUUID(),
-            type: 'create_ticket',
-            status: 'pending',
-            payload: {
-                title: 'Laptop issue',
-                description: 'The employee laptop is not starting.',
-                priority: 'medium',
-            },
-        });
-
-        return {
-            status: 'needs_approval',
-            intent: 'create_ticket',
-            message: 'Ticket prepared and waiting for approval.',
-            data: {
-                approvalId: approval.id,
-                preview: approval.payload,
-            },
-        };
-    }
-
-    return {
-        status: 'success',
-        intent: 'unknown',
-        message: 'No action matched.',
-    };
 }

@@ -1,28 +1,29 @@
 import Fastify from 'fastify';
+
 import { registerPlugins } from './plugins';
 import { registerRoutes } from './routes';
 
 export const buildApp = () => {
-  const app = Fastify({
-    logger: true,
-  });
+    const app = Fastify({
+        logger: true,
+    });
 
-  registerPlugins(app);
-  registerRoutes(app);
+    registerPlugins(app);
+    registerRoutes(app);
 
-  return app;
+    return app;
 };
 
 const start = async () => {
-  const app = buildApp();
+    const app = buildApp();
 
-  try {
-    await app.listen({ port: 4000, host: '0.0.0.0' });
-    app.log.info('Server running on http://localhost:4000');
-  } catch (error) {
-    app.log.error(error);
-    process.exit(1);
-  }
+    try {
+        await app.listen({ port: 4000, host: '0.0.0.0' });
+        app.log.info('Server running on http://localhost:4000');
+    } catch (error) {
+        app.log.error(error);
+        process.exit(1);
+    }
 };
 
 start();

@@ -1,18 +1,18 @@
-import js from "@eslint/js";
-import tseslint from "typescript-eslint";
-import prettierConfig from "eslint-config-prettier";
+import js from '@eslint/js';
+import prettierConfig from 'eslint-config-prettier';
+import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  js.configs.recommended,
-  ...tseslint.configs.recommended,
-  prettierConfig,
-  {
-    rules: {
-      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
-      "@typescript-eslint/no-explicit-any": "warn",
+    js.configs.recommended,
+    ...tseslint.configs.recommended,
+    prettierConfig,
+    {
+        rules: {
+            '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+            '@typescript-eslint/no-explicit-any': 'warn',
+        },
     },
-  },
-  {
-    ignores: ["node_modules/**", "dist/**", "build/**"],
-  }
+    {
+        ignores: ['node_modules/**', 'dist/**', 'build/**'],
+    },
 );

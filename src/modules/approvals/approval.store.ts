@@ -1,6 +1,6 @@
 type PendingApproval = {
     id: string;
-    type: 'schedule_meeting' | 'send_email' | 'create_ticket';
+    type: 'get_current_datetime' | 'schedule_meeting' | 'send_email' | 'create_ticket';
     payload: Record<string, unknown>;
     status: 'pending' | 'approved';
 };

@@ -3,6 +3,27 @@ import Anthropic from '@anthropic-ai/sdk';
 
 export const officeTools: Anthropic.Tool[] = [
     {
+        name: 'read_pdf',
+        description:
+            'Reads and analyzes a PDF file that was previously uploaded. Use this when the user references a file ID or asks to read, summarize, or extract information from a PDF document.',
+        input_schema: {
+            type: 'object',
+            properties: {
+                fileId: {
+                    type: 'string',
+                    description: 'The file ID returned when the PDF was uploaded.',
+                },
+                question: {
+                    type: 'string',
+                    description:
+                        'What to extract or analyze from the PDF. Be specific (e.g. "Summarize the key points", "Extract all dates and deadlines").',
+                },
+            },
+            required: ['fileId', 'question'],
+            additionalProperties: false,
+        },
+    },
+    {
         name: 'get_current_datetime',
         description:
             'Returns the current date and time. Always use this tool first when the user refers to relative times like "in 2 hours", "tomorrow", "next Monday", "next month", "this afternoon", or any time relative to now.',

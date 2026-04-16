@@ -9,9 +9,10 @@ export async function agentRoutes(app: FastifyInstance) {
             schema: {
                 body: {
                     type: 'object',
-                    required: ['message'],
+                    required: ['message', 'sessionId'],
                     properties: {
                         message: { type: 'string', minLength: 1 },
+                        sessionId: { type: 'string', minLength: 1 },
                     },
                 },
             },

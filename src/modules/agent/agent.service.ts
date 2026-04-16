@@ -4,7 +4,9 @@ import Anthropic from '@anthropic-ai/sdk';
 
 import { createApproval } from '../approvals/approval.store';
 import { getCurrentDatetimeTool } from '../tools/datetime.tool';
+import { readPdfWithClaude } from '../files/file.service';
 import { callClaude } from './claude.service';
+import { appendToHistory, getHistory } from './session.store';
 
 export type AgentIntent = 'schedule_meeting' | 'send_email' | 'create_ticket' | 'unknown';
 
@@ -23,9 +25,13 @@ export type AgentResponse = {
     data?: Record<string, unknown>;
 };
 
-export async function processAgentMessage(message: string): Promise<AgentResponse> {
+export async function processAgentMessage(
+    message: string,
+    sessionId: string,
+): Promise<AgentResponse> {
     try {
-        const messages: Anthropic.MessageParam[] = [{ role: 'user', content: message }];
+        const messages = getHistory(sessionId);
+        messages.push({ role: 'user', content: message });
 
         let { response } = await callClaude(messages);
 
@@ -66,6 +72,10 @@ export async function processAgentMessage(message: string): Promise<AgentRespons
 
             if (toolBlock.name === 'get_current_datetime') {
                 toolResult = getCurrentDatetimeTool();
+            } else if (toolBlock.name === 'read_pdf') {
+                const { fileId, question } = toolBlock.input as { fileId: string; question: string };
+                const content = await readPdfWithClaude(fileId, question);
+                toolResult = { content };
             } else {
                 toolResult = { error: `Unknown tool: ${toolBlock.name}` };
             }
@@ -93,6 +103,9 @@ export async function processAgentMessage(message: string): Promise<AgentRespons
         const replyText = textBlock
             ? textBlock.text.replace(/\n+/g, ' ').trim()
             : 'No response from assistant.';
+
+        messages.push({ role: 'assistant', content: response.content });
+        appendToHistory(sessionId, messages);
 
         return {
             status: 'success',

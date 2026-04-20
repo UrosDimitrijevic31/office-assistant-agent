@@ -3,8 +3,8 @@ import { randomUUID } from 'node:crypto';
 import Anthropic from '@anthropic-ai/sdk';
 
 import { createApproval } from '../approvals/approval.store';
-import { getCurrentDatetimeTool } from '../tools/datetime.tool';
 import { readPdfWithClaude } from '../files/file.service';
+import { getCurrentDatetimeTool } from '../tools/datetime.tool';
 import { callClaude } from './claude.service';
 import { appendToHistory, getHistory } from './session.store';
 
@@ -31,6 +31,8 @@ export async function processAgentMessage(
 ): Promise<AgentResponse> {
     try {
         const messages = await getHistory(sessionId);
+        console.log('\n Messages - all', messages);
+
         messages.push({ role: 'user', content: message });
 
         let { response } = await callClaude(messages);
@@ -73,7 +75,10 @@ export async function processAgentMessage(
             if (toolBlock.name === 'get_current_datetime') {
                 toolResult = getCurrentDatetimeTool();
             } else if (toolBlock.name === 'read_pdf') {
-                const { fileId, question } = toolBlock.input as { fileId: string; question: string };
+                const { fileId, question } = toolBlock.input as {
+                    fileId: string;
+                    question: string;
+                };
                 const content = await readPdfWithClaude(fileId, question);
                 toolResult = { content };
             } else {

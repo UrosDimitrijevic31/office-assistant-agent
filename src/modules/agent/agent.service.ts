@@ -30,7 +30,7 @@ export async function processAgentMessage(
     sessionId: string,
 ): Promise<AgentResponse> {
     try {
-        const messages = getHistory(sessionId);
+        const messages = await getHistory(sessionId);
         messages.push({ role: 'user', content: message });
 
         let { response } = await callClaude(messages);
@@ -49,7 +49,7 @@ export async function processAgentMessage(
                 const intent = toolBlock.name;
                 const payload = toolBlock.input as Record<string, unknown>;
 
-                const approval = createApproval({
+                const approval = await createApproval({
                     id: randomUUID(),
                     type: intent,
                     status: 'pending',
@@ -105,7 +105,7 @@ export async function processAgentMessage(
             : 'No response from assistant.';
 
         messages.push({ role: 'assistant', content: response.content });
-        appendToHistory(sessionId, messages);
+        await appendToHistory(sessionId, messages);
 
         return {
             status: 'success',

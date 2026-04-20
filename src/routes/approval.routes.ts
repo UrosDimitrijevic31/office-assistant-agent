@@ -9,14 +9,14 @@ export async function approvalRoutes(app: FastifyInstance) {
     app.post('/:approvalId/approve', async (request, reply) => {
         const { approvalId } = request.params as { approvalId: string };
 
-        const pending = getApproval(approvalId);
+        const pending = await getApproval(approvalId);
 
         if (!pending) {
             return reply.code(404).send({
                 message: 'Approval not found',
             });
         }
-        const updated = approve(approvalId);
+        const updated = await approve(approvalId);
 
         let result: unknown = null;
 

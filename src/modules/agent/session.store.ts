@@ -1,18 +1,30 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { eq } from 'drizzle-orm';
 
-const sessions = new Map<string, Anthropic.MessageParam[]>();
+import { db } from '@src/db/index.js';
+import { sessions } from '@src/db/schema/index.js';
 
-export function getHistory(sessionId: string): Anthropic.MessageParam[] {
-    if (!sessions.has(sessionId)) {
-        sessions.set(sessionId, []);
-    }
-    return sessions.get(sessionId)!;
+export async function getHistory(sessionId: string): Promise<Anthropic.MessageParam[]> {
+    const row = await db.query.sessions.findFirst({
+        where: eq(sessions.id, sessionId),
+    });
+
+    return row?.messages ?? [];
 }
 
-export function appendToHistory(sessionId: string, messages: Anthropic.MessageParam[]): void {
-    sessions.set(sessionId, messages);
+export async function appendToHistory(
+    sessionId: string,
+    messages: Anthropic.MessageParam[],
+): Promise<void> {
+    await db
+        .insert(sessions)
+        .values({ id: sessionId, messages })
+        .onConflictDoUpdate({
+            target: sessions.id,
+            set: { messages, updatedAt: new Date() },
+        });
 }
 
-export function clearHistory(sessionId: string): void {
-    sessions.delete(sessionId);
+export async function clearHistory(sessionId: string): Promise<void> {
+    await db.delete(sessions).where(eq(sessions.id, sessionId));
 }

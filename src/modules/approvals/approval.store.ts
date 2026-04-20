@@ -1,26 +1,27 @@
-type PendingApproval = {
-    id: string;
-    type: 'get_current_datetime' | 'schedule_meeting' | 'send_email' | 'create_ticket';
-    payload: Record<string, unknown>;
-    status: 'pending' | 'approved';
-};
+import { eq } from 'drizzle-orm';
 
-const approvals = new Map<string, PendingApproval>();
+import { db } from '@src/db/index.js';
+import { Approval, NewApproval, approvals } from '@src/db/schema/index.js';
 
-export function createApproval(input: PendingApproval) {
-    approvals.set(input.id, input);
-    return input;
+export async function createApproval(input: NewApproval): Promise<Approval> {
+    const [row] = await db.insert(approvals).values(input).returning();
+    return row;
 }
 
-export function getApproval(id: string) {
-    return approvals.get(id);
+export async function getApproval(id: string): Promise<Approval | null> {
+    const row = await db.query.approvals.findFirst({
+        where: eq(approvals.id, id),
+    });
+
+    return row ?? null;
 }
 
-export function approve(id: string) {
-    const current = approvals.get(id);
-    if (!current) return null;
+export async function approve(id: string): Promise<Approval | null> {
+    const [row] = await db
+        .update(approvals)
+        .set({ status: 'approved', updatedAt: new Date() })
+        .where(eq(approvals.id, id))
+        .returning();
 
-    const updated = { ...current, status: 'approved' as const };
-    approvals.set(id, updated);
-    return updated;
+    return row ?? null;
 }

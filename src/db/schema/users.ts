@@ -1,13 +1,15 @@
-import { index, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, index, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 export const users = pgTable(
-    'users',
+    'user',
     {
-        id: uuid('id').primaryKey().defaultRandom(),
+        id: text('id').primaryKey(),
+        name: text('name').notNull(),
         email: text('email').notNull().unique(),
-        userName: text('user_name'),
-        createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-        updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+        emailVerified: boolean('email_verified').notNull().default(false),
+        image: text('image'),
+        createdAt: timestamp('created_at').notNull().defaultNow(),
+        updatedAt: timestamp('updated_at').notNull().defaultNow(),
     },
     (t) => [index('users_email_idx').on(t.email)],
 );

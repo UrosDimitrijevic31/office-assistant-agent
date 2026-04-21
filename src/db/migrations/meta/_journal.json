@@ -15,6 +15,13 @@
       "when": 1776719455291,
       "tag": "0001_broad_forge",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776721926616,
+      "tag": "0002_tough_prodigy",
+      "breakpoints": true
     }
   ]
 }

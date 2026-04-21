@@ -4,14 +4,10 @@ import { processAgentMessage } from './agent.service';
 
 type AgentQueryBody = {
     message: string;
-    sessionId: string;
 };
 
-export async function handleAgentQuery(
-    request: FastifyRequest<{ Body: AgentQueryBody }>,
-    reply: FastifyReply,
-) {
-    const { message, sessionId } = request.body;
-    const result = await processAgentMessage(message, sessionId);
+export async function handleAgentQuery(request: FastifyRequest, reply: FastifyReply) {
+    const { message } = request.body as AgentQueryBody;
+    const result = await processAgentMessage(message, request.user.id);
     return reply.send(result);
 }

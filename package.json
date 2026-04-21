@@ -1,5 +1,6 @@
 {
     "name": "office-assistant-agent",
+    "author": "Uros Dimitrijevic",
     "version": "1.0.0",
     "main": "index.js",
     "scripts": {
@@ -12,17 +13,19 @@
         "format": "prettier --write .",
         "format:check": "prettier --check .",
         "db:generate": "drizzle-kit generate",
-        "db:migrate": "drizzle-kit migrate",
+        "db:migrate": "tsx --tsconfig tsconfig.json src/db/migrate.ts",
         "db:studio": "drizzle-kit studio",
         "db:push": "drizzle-kit push"
     },
     "keywords": [],
-    "author": "",
     "license": "ISC",
     "description": "",
     "dependencies": {
         "@anthropic-ai/sdk": "0.88.0",
+        "@fastify/cors": "^11.2.0",
         "@fastify/multipart": "^10.0.0",
+        "@fastify/rate-limit": "^10.3.0",
+        "better-auth": "^1.6.5",
         "dotenv": "^17.4.2",
         "drizzle-orm": "^0.45.2",
         "fastify": "5.8.4",

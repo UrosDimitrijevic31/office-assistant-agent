@@ -4,8 +4,9 @@ import rateLimit from '@fastify/rate-limit';
 import { FastifyInstance } from 'fastify';
 
 import { registerAuthPlugin } from './auth.plugin.js';
+import { registerLoggerPlugin } from './logger.plugin.js';
 
-const ALLOWED_ORIGINS = process.env.BETTER_AUTH_URL;
+const ALLOWED_ORIGINS = process.env.FRONTEND_URL;
 
 export function registerPlugins(app: FastifyInstance) {
     app.register(cors, {
@@ -15,9 +16,10 @@ export function registerPlugins(app: FastifyInstance) {
     });
 
     app.register(rateLimit, {
-        global: false, // only apply where explicitly set
+        global: false,
     });
 
     app.register(multipart);
     app.register(registerAuthPlugin);
+    app.register(registerLoggerPlugin);
 }

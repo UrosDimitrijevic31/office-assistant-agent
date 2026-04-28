@@ -1,13 +1,20 @@
 import 'dotenv/config';
-
 import Fastify from 'fastify';
 
 import { registerPlugins } from './plugins';
 import { registerRoutes } from './routes';
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 export const buildApp = () => {
     const app = Fastify({
-        logger: true,
+        logger: {
+            level: process.env.LOG_LEVEL ?? 'info',
+            redact: ['req.headers.authorization', 'req.headers.cookie'],
+            transport: isDev
+                ? { target: 'pino-pretty', options: { colorize: true, translateTime: 'SYS:standard' } }
+                : undefined,
+        },
     });
 
     registerPlugins(app);

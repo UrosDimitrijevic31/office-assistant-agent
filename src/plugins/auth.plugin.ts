@@ -1,11 +1,12 @@
 import { FastifyInstance } from 'fastify';
+import fp from 'fastify-plugin';
 
 import { auth } from '@src/lib/auth.js';
 
-export async function registerAuthPlugin(app: FastifyInstance) {
+async function authPlugin(app: FastifyInstance) {
     app.decorate('authenticate', async function (request: any, reply: any) {
         const session = await auth.api.getSession({
-            headers: request.headers as Headers,
+            headers: request.headers as unknown as Headers,
         });
 
         if (!session) {
@@ -16,3 +17,5 @@ export async function registerAuthPlugin(app: FastifyInstance) {
         request.session = session.session;
     });
 }
+
+export const registerAuthPlugin = fp(authPlugin);
